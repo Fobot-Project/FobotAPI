@@ -6,16 +6,13 @@ from firebase_admin import credentials
 from firebase_admin import firestore
 import json
 cred = credentials.Certificate({
-     })
+    })
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 namespace = Namespace('entities', 'Entities fake endpoints')
 
 entity_model = namespace.model('Entity', {
-    'id': fields.String(
-        required=True,
-        description='Entity identifier'
-    ),
+
     'food': fields.String(
         required=True,
         description='Entity name'
@@ -64,13 +61,13 @@ class entities(Resource):
     @namespace.response(400, 'Entity with the given name already exists')
     @namespace.response(500, 'Internal Server error')
     @namespace.expect(entity_list_model, validate=True)
-    @namespace.marshal_with(entity_list_model)#, code=HTTPStatus.CREATED)
+    #@namespace.marshal_with(entity_list_model)#, code=HTTPStatus.CREATED)
     def post(self,menuID):
         '''Create a new menu'''
-        menu_ref = db.collection(u'menus').document(menuID)
+        menu_ref = db.collection(u'menus').document()
         newlist=namespace.payload
         menu_ref.set(
-                  newlist                    
+                    newlist            
                 )
         
         return newlist
@@ -83,7 +80,7 @@ class entity(Resource):
     @namespace.response(404, 'Entity not found')
     @namespace.response(500, 'Internal Server error')
     #@namespace.marshal_with(entity_model)
-    def get(self, entity_id):
+    def get(self):
         '''Get entity_example information'''
         snapshot = db.collection('orders').document(entity_id).get()
         entity_list = snapshot.to_dict()
@@ -98,16 +95,14 @@ class entity(Resource):
     @namespace.expect(entity_model, validate=True)
     @namespace.marshal_with(entity_model)
     def put(self, entity_id):
-        '''Update entity information'''
+        '''Update menu'''
         menu_ref = db.collection(u'menus').document(entity_id)
-        menu_ref.update({
-                 entity_model.data
-                                        
-                    })
-        if request.json['id'] == 'Entity id':
-            namespace.abort(400, 'Entity with the given name already exists')
-
-        return entity_model.data
+        newlist=namespace.payload
+        menu_ref.update(
+                 newlist 
+                    
+                    )
+        return newlist
 
     @namespace.response(204, 'Request Success (No Content)')
     @namespace.response(404, 'Entity not found')
